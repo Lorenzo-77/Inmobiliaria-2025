@@ -15,8 +15,11 @@ html {
 html {
   position: relative;
   min-height: 100%;
-}
+
 /*
+
+
+
 body {
   margin-bottom: 60px;
   background-image: url('https://w.wallhaven.cc/full/96/wallhaven-96o7d8.jpg');
@@ -24,6 +27,7 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
+<<<<<<< HEAD
   position: relative;
 }
 
@@ -38,3 +42,5 @@ body::before {
   /*z-index: -1;
 }
 */
+
+}
