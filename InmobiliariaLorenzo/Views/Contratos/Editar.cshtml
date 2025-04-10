@@ -1,0 +1,37 @@
+@model InmobiliariaLorenzo.Models.Contrato
+@{
+    ViewData["Title"] = "Editar";
+}
+
+<link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
+<script src="https://kit.fontawesome.com/708362d465.js" crossorigin="anonymous"></script>
+
+<h1>Editar</h1>
+
+<h4>Contrato</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Editar">
+            <div class="form-group">
+                <label asp-for="FechaInicio" class="control-label"></label>
+                <input type="date" asp-for="FechaInicio" class="form-control" />
+                <span asp-validation-for="FechaInicio" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FechaFin" class="control-label"></label>
+                <input type="date" asp-for="FechaFin" class="form-control" />
+                <span asp-validation-for="FechaFin" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Monto" class="control-label">Monto (Mensual)</label>
+                <input type="number" asp-for="Monto" class="form-control" />
+                <span asp-validation-for="Monto" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Guardar" class="btn btn-primary" /> <a asp-action="Index"
+                    class="btn btn-volver">Volver a la lista</a>
+            </div>
+        </form>
+    </div>
+</div>
