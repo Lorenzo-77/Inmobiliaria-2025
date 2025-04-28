@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 15-04-2025 a las 01:00:42
+-- Tiempo de generación: 28-04-2025 a las 22:04:18
 -- Versión del servidor: 10.4.24-MariaDB
 -- Versión de PHP: 7.4.29
 
@@ -101,8 +101,8 @@ INSERT INTO `inquilinos` (`Id`, `Nombre`, `Apellido`, `Dni`, `Email`, `Telefono`
 
 CREATE TABLE `pagos` (
   `Id` int(11) NOT NULL,
-  `IdInquilino` int(11) NOT NULL,
-  `fechaPago` date NOT NULL,
+  `ContratoId` int(11) NOT NULL,
+  `FechaPago` date NOT NULL,
   `Importe` double NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -158,7 +158,7 @@ ALTER TABLE `inquilinos`
 --
 ALTER TABLE `pagos`
   ADD PRIMARY KEY (`Id`),
-  ADD KEY `IdInquilino` (`IdInquilino`);
+  ADD KEY `ContratoId` (`ContratoId`);
 
 --
 -- Indices de la tabla `propietarios`
@@ -174,7 +174,7 @@ ALTER TABLE `propietarios`
 -- AUTO_INCREMENT de la tabla `contratos`
 --
 ALTER TABLE `contratos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `inmuebles`
@@ -187,12 +187,6 @@ ALTER TABLE `inmuebles`
 --
 ALTER TABLE `inquilinos`
   MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT de la tabla `pagos`
---
-ALTER TABLE `pagos`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `propietarios`
@@ -221,7 +215,7 @@ ALTER TABLE `inmuebles`
 -- Filtros para la tabla `pagos`
 --
 ALTER TABLE `pagos`
-  ADD CONSTRAINT `pagos_ibfk_1` FOREIGN KEY (`IdInquilino`) REFERENCES `inquilinos` (`Id`);
+  ADD CONSTRAINT `pagos_ibfk_1` FOREIGN KEY (`ContratoId`) REFERENCES `contratos` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
