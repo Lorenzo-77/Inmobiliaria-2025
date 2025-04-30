@@ -4,30 +4,71 @@
     ViewData["Title"] = "Detalles del Inmueble";
 }
 
-<div class="row">
-    <div class="col-md-6">
-        <img src="~/img/propiedad2.jpg" class="img-fluid" alt="Foto Inmuebles">
-    </div>
-    <div class="col-md-6">
-        <div class="detalles-container">
-            <h4>Detalles del Inmueble</h4>
-            <ul class="list-group lista-detalles">
-                <li class="list-group-item"><strong>Id del Inmueble:</strong> @Model.Id</li>
-                <li class="list-group-item"><strong>Tipo de Inmueble:</strong> @Model.Tipo</li>
-                <li class="list-group-item"><strong>Nombre del Propietario:</strong> @Model.Propietario.Nombre
-                    @Model.Propietario.Apellido</li>
-                <li class="list-group-item"><strong>Dirección:</strong> @Model.Direccion</li>
-                <li class="list-group-item"><strong>Uso:</strong> @Model.Uso</li>
-                <li class="list-group-item"><strong>Latitud:</strong> @Model.Latitud</li>
-                <li class="list-group-item"><strong>Longitud:</strong> @Model.Longitud</li>
-                <li class="list-group-item"><strong>Ambientes:</strong> @Model.Ambientes</li>
-                <li class="list-group-item"><strong>Precio:</strong> @Model.Precio</li>
-                <li class="list-group-item"><strong>Activo:</strong> @(Model.Activo ? "Sí" : "No")</li>
-                <li class="list-group-item"><strong>Disponible:</strong> @(Model.Disponible ? "Sí" : "No")</li>
-            </ul>
+<link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
+<script src="https://kit.fontawesome.com/708362d465.js" crossorigin="anonymous"></script>
 
-            <div class="button-container">
-                <a asp-action="Index" class="button-volver">Volver a la lista</a>
+<h2 class="mb-4">Detalles del Inmueble</h2>
+
+<div class="row g-4">
+    <!-- Imagen -->
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <img src="~/img/propiedad2.jpg" class="card-img-top img-fluid rounded" alt="Foto Inmueble">
+        </div>
+    </div>
+
+    <!-- Datos del inmueble -->
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Información General</h5>
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th>Id</th>
+                            <td>@Model.Id</td>
+                            <th>Tipo</th>
+                            <td>@Model.Tipo</td>
+                        </tr>
+                        <tr>
+                            <th>Propietario</th>
+                            <td colspan="3">@Model.Propietario.Nombre @Model.Propietario.Apellido</td>
+                        </tr>
+                        <tr>
+                            <th>Dirección</th>
+                            <td colspan="3">@Model.Direccion</td>
+                        </tr>
+                        <tr>
+                            <th>Uso</th>
+                            <td>@Model.Uso</td>
+                            <th>Ambientes</th>
+                            <td>@Model.Ambientes</td>
+                        </tr>
+                        <tr>
+                            <th>Latitud</th>
+                            <td>@Model.Latitud</td>
+                            <th>Longitud</th>
+                            <td>@Model.Longitud</td>
+                        </tr>
+                        <tr>
+                            <th>Precio</th>
+                            <td>@Model.Precio.ToString("C")</td>
+                            <th>Activo</th>
+                            <td>@(Model.Activo ? "Sí" : "No")</td>
+                        </tr>
+                        <tr>
+                            <th>Disponible</th>
+                            <td>@(Model.Disponible ? "Sí" : "No")</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="mt-4">
+                    <a asp-action="Index" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-arrow-left"></i> Volver a la lista
+                    </a>
+                </div>
             </div>
         </div>
     </div>

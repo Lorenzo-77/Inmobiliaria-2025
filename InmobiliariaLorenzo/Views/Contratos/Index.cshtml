@@ -1,119 +1,106 @@
 @model IEnumerable<Contrato>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Lista de Contratos";
 }
+
 <link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
 <script src="https://kit.fontawesome.com/708362d465.js" crossorigin="anonymous"></script>
 
-<h1>Lista de Contratos</h1>
+<h2 class="mb-4"><i class="bi bi-file-earmark-text"></i>Lista de Contratos</h2>
 
-<p>
-    <a asp-action="Crear" class="btn btn-create-new">Crear nuevo</a>
-</p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a asp-action="Crear" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i> Crear nuevo
+    </a>
+</div>
 
-<table class="table">
+<!-- Filtros -->
+<form asp-controller="Contratos" asp-action="Index" method="get" class="row g-3 align-items-end mb-4">
+    <!-- Fila 1 -->
+    <div class="col-md-4">
+        <label for="estadoId" class="form-label">Estado del Contrato</label>
+        <select class="form-select" id="estadoId" name="estadoId">
+            <option value="">Todos</option>
+            <option value="1">Activos</option>
+            <option value="2">Inactivos</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="inmId" class="form-label">Filtrar por Inmueble</label>
+        <select class="form-select" id="inmId" name="inmId">
+            <option value="">Todos</option>
+            @foreach (var item in Model.Select(m => m.Inmueble).DistinctBy(i => i.Id))
+            {
+                <option value="@item.Id">@item.Direccion</option>
+            }
+        </select>
+    </div>
 
-    <form asp-controller="Contratos" asp-action="Index" method="get" class="custom-form">
-        <div class="form-group">
-            <label for="estadoId">Estado del Contrato</label>
-            <select class="form-control form-control-sm dropdown-container" id="estadoId" name="estadoId">
-                <option value="">Todos</option>
-                <option value="1">Activos</option>
-                <option value="2">Inactivos</option>
-            </select>
-            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
-        </div>
-    </form>
-    <form asp-controller="Contratos" asp-action="Index" method="get" class="custom-form">
-        <div class="form-group">
-            <label for="inmId">Filtrar por Inmuebles</label>
-            <select class="form-control form-control-sm dropdown-container" id="inmId" name="inmId">
-                <option value="">Todos</option>
-                @foreach (var item in Model)
-                {
-                    <option>@Html.DisplayFor(modelItem => item.InmuebleId)</option>
-                }
-            </select>
-            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
-        </div>
-    </form>
-    <form asp-controller="Contratos" asp-action="Index" method="get" class="custom-form">
-        <div class="form-group">
-            <label for="fechaIList">Fecha Inicial</label>
-            <input type="date" list="fechaI" id="fechaIList" name="fechaIList"/>
-              <datalist id="fechaI">
-              </datalist>
-            <label for="fechaFList">Fecha Final</label>
-            <input type="date" list="fechaF" id="fechaFList" name="fechaFList"/>
-              <datalist id="fechaF">
-              </datalist>
-            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
-        </div>
-    </form>
-    <form asp-controller="Contratos" asp-action="Index" method="get" class="custom-form">
-        <div class="form-group">
-            <label for="diasId">Dias a vencer</label>
-            <input type="number" list="dias" id="diasId" name="diasId"/>
-              <datalist id="dias">
-                <option value="30"></option>
-                <option value="60"></option>
-                <option value="90"></option>
-              </datalist>
-            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
-        </div>
-    </form>
+    <!-- Fila 2 -->
+    <div class="col-md-3">
+        <label for="fechaIList" class="form-label">Fecha Inicial</label>
+        <input type="date" class="form-control" id="fechaIList" name="fechaIList" />
+    </div>
+    <div class="col-md-3">
+        <label for="fechaFList" class="form-label">Fecha Final</label>
+        <input type="date" class="form-control" id="fechaFList" name="fechaFList" />
+    </div>
+    <div class="col-md-3">
+        <label for="diasId" class="form-label">Días a vencer</label>
+        <input type="number" class="form-control" id="diasId" name="diasId" list="dias" />
+        <datalist id="dias">
+            <option value="30" />
+            <option value="60" />
+            <option value="90" />
+        </datalist>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100">
+            <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary w-100">
+            <i class="fa-solid fa-rotate-left"></i> Limpiar
+        </a>
+    </div>
+</form>
 
-    <thead>
+<!-- Tabla -->
+<table class="table table-striped align-middle">
+    <thead class="table-dark">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Id)
-            </th>
-            <th>
-                Inquilino
-            </th>
-            <th>
-                Propietario
-            </th>
-            <th>
-                Fecha de Inicio
-            </th>
-            <th>
-                Fecha de Finalización
-            </th>
-            <th>
-                Monto Mensual
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Id)</th>
+            <th>Inquilino</th>
+            <th>Propietario</th>
+            <th>Fecha de Inicio</th>
+            <th>Fecha de Finalización</th>
+            <th>Monto Mensual</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
+                <td>@item.Id</td>
+                <td>@item.Inquilino.Nombre @item.Inquilino.Apellido</td>
+                <td>@item.Inmueble.Propietario.Nombre @item.Inmueble.Propietario.Apellido</td>
+                <td>@item.FechaInicio.ToShortDateString()</td>
+                <td>@item.FechaFin.ToShortDateString()</td>
+                <td>@item.Monto.ToString("C")</td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Id)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Inquilino.Nombre) @Html.DisplayFor(modelItem => item.Inquilino.Apellido)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Inmueble.Propietario.Nombre) @Html.DisplayFor(modelItem => item.Inmueble.Propietario.Apellido)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.FechaInicio)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.FechaFin)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Monto)
-                </td>
-                <td>
-                    <i class="fa-solid fa-circle-info"></i> @Html.ActionLink("Detalles", "Detalles", new { id = item.Id }) |
-                    <i class="fas fa-dollar-sign"></i> @Html.ActionLink("Pagos", "Pagos", new { id = item.Id }) |
-                    <i class="fa-solid fa-pen-to-square"></i> @Html.ActionLink("Editar", "Editar", new { id = item.Id }) |
-                    <i class="fa-solid fa-trash"></i> @Html.ActionLink("Eliminar", "Eliminar", new { id = item.Id })
+                    <a asp-action="Detalles" asp-route-id="@item.Id" class="text-primary me-2">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </a>
+                    <a asp-action="Pagos" asp-route-id="@item.Id" class="text-success me-2">
+                        <i class="fas fa-dollar-sign"></i>
+                    </a>
+                    <a asp-action="Editar" asp-route-id="@item.Id" class="text-warning me-2">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </a>
+                    <a asp-action="Eliminar" asp-route-id="@item.Id" class="text-danger">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
                 </td>
             </tr>
         }

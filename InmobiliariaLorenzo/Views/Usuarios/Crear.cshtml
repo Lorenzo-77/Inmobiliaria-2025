@@ -1,0 +1,82 @@
+﻿@model Inmobiliaria_.Net_Core.Models.Usuario
+
+@{
+	ViewData["Title"] = "Crear Usuario";
+}
+
+<div class="row justify-content-center">
+	<div class="col-md-8">
+		<div class="card shadow-sm">
+			<div class="card-header bg-success text-white">
+				<h4 class="mb-0">Crear Nuevo Usuario</h4>
+			</div>
+			<div class="card-body">
+				<form asp-action="Create" enctype="multipart/form-data">
+					<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+					<div class="row g-3">
+						<div class="col-md-6">
+							<div class="form-floating">
+								<input asp-for="Nombre" class="form-control" placeholder="Nombre" />
+								<label asp-for="Nombre"></label>
+								<span asp-validation-for="Nombre" class="text-danger small"></span>
+							</div>
+						</div>
+
+						<div class="col-md-6">
+							<div class="form-floating">
+								<input asp-for="Apellido" class="form-control" placeholder="Apellido" />
+								<label asp-for="Apellido"></label>
+								<span asp-validation-for="Apellido" class="text-danger small"></span>
+							</div>
+						</div>
+
+						<div class="col-md-6">
+							<div class="form-floating">
+								<input asp-for="Email" class="form-control" placeholder="Email" />
+								<label asp-for="Email"></label>
+								<span asp-validation-for="Email" class="text-danger small"></span>
+							</div>
+						</div>
+
+						<div class="col-md-6">
+							<div class="form-floating">
+								<input asp-for="Clave" class="form-control" placeholder="Clave" type="password" />
+								<label asp-for="Clave"></label>
+								<span asp-validation-for="Clave" class="text-danger small"></span>
+							</div>
+						</div>
+
+						<div class="col-md-6">
+							<div class="form-floating">
+								<select class="form-select" name="Rol" asp-for="Rol">
+									@foreach (var kvp in (IDictionary<int, string>)ViewBag.Roles)
+									{
+										<option value="@kvp.Key">@kvp.Value</option>
+									}
+								</select>
+								<label>Rol</label>
+							</div>
+							<span asp-validation-for="Rol" class="text-danger small"></span>
+						</div>
+
+						<div class="col-md-6">
+							<label asp-for="AvatarFile" class="form-label">Avatar</label>
+							<input type="file" name="AvatarFile" class="form-control" />
+							<span asp-validation-for="AvatarFile" class="text-danger small"></span>
+						</div>
+					</div>
+
+					<div class="mt-4 d-flex justify-content-between">
+						<a asp-action="Index" class="btn btn-outline-secondary">
+							<i class="fa-solid fa-arrow-left"></i> Volver
+						</a>
+						<button type="submit" class="btn btn-success">
+							<i class="fa-solid fa-plus"></i> Crear Usuario
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

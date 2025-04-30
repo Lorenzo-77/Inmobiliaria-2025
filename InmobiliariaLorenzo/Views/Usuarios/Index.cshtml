@@ -1,0 +1,68 @@
+@* @model IEnumerable<Inmobiliaria_.Net_Core.Models.Usuario> *@
+
+@{
+    ViewData["Title"] = "Usuarios";
+    var rnd = new Random();
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Usuarios</h2>
+                    <a asp-action="Create" class="btn btn-success">
+                        <i class="fa-solid fa-plus"></i> Nuevo Usuario
+                    </a>
+                </div>
+
+                <table class="table table-hover table-bordered align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model[0].Id)</th>
+                            <th>@Html.DisplayNameFor(model => model[0].Nombre)</th>
+                            <th>@Html.DisplayNameFor(model => model[0].Apellido)</th>
+                            <th>@Html.DisplayNameFor(model => model[0].Email)</th>
+                            <th>@Html.DisplayNameFor(model => model[0].Avatar)</th>
+                            <th>@Html.DisplayNameFor(model => model[0].Rol)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+                                <td>@item.Nombre</td>
+                                <td>@item.Apellido</td>
+                                <td>@item.Email</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Avatar))
+                                    {
+                                        var x = item.Avatar + "?" + rnd.Next();
+                                        <img src="@x" alt="Avatar" class="rounded-circle border" width="40" />
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin foto</span>
+                                    }
+                                </td>
+                                <td>@item.RolNombre</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                        <a asp-action="Eliminar" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
