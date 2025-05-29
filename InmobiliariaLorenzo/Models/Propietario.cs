@@ -1,6 +1,27 @@
-namespace InmobiliariaLorenzo.Models;
+using System.ComponentModel.DataAnnotations;
 
-public class Propietario : Persona
+namespace InmobiliariaLorenzo.Models
 {
-    public int Id { get; set; }
+
+public class Propietario
+{
+    [Key]
+    [Display(Name = "Código")]
+    public int Id_Propietario { get; set; }
+
+    [Required]
+    public string? Apellido { get; set; }
+    [Required]
+    public string? Nombre { get; set; }
+
+    [Required]
+    public string? Dni { get; set; }
+    [Display(Name = "Teléfono")]
+    public string? Telefono { get; set; }
+    [Required, EmailAddress]
+    public string? Email { get; set; }
+    [Required(ErrorMessage = "La clave es obligatoria"), DataType(DataType.Password)]
+    public string? Clave { get; set; }
+}
+
 }

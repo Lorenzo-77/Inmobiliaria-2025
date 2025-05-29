@@ -1,150 +1,167 @@
-using System.Windows.Markup;
-using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using InmobiliariaLorenzo.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace InmobiliariaLorenzo.Controllers;
 
+[Authorize]
 public class InmueblesController : Controller
 {
-    private readonly ILogger<InmueblesController> _logger;
+    private readonly IRepositorioInmueble repoInmuble;
+    private readonly IRepositorioTipo repoTipo;
+    private readonly IRepositorioUso repoUso;
+    private readonly IRepositorioPropietario repoPropietario;
+    private readonly IConfiguration config;
 
-    public InmueblesController(ILogger<InmueblesController> logger)
+    public InmueblesController(IRepositorioInmueble repo, IRepositorioTipo repTipo, IRepositorioUso repUso, IRepositorioPropietario repoPro, IConfiguration config)
     {
-        _logger = logger;
+        this.repoInmuble = repo;
+        this.repoTipo = repTipo;
+        this.repoUso = repUso;
+        this.repoPropietario = repoPro;
+        this.config = config;
     }
 
-    public IActionResult Index(int? tipoId, int? dispId)
+    // GET: Inmuebles
+    [Route("[controller]/Index")]
+    public ActionResult Index()
     {
-        RepositorioInmuebles rp = new RepositorioInmuebles();
-        IList<Inmueble> lista;
-
-        if (tipoId.HasValue)
-        {
-            lista = rp.GetInmueblesPorTipo(tipoId.Value);
-        }
-        else if (dispId.HasValue)
-        {
-            lista = rp.GetInmueblesPorDisponibilidad(dispId.Value - 1);
-        }
-        else
-        {
-            lista = rp.GetInmuebles();
-        }
-
+        var lista = repoInmuble.ObtenerTodos();
         return View(lista);
     }
 
-
-
-    // GET: Inmuebles/Crear
-    public ActionResult Crear()
+    // GET: Inmuebles/Details/5
+    [HttpGet]
+    public ActionResult Details(int id)
     {
-        RepositorioPropietarios rep = new RepositorioPropietarios();
-        var listaPropietarios = rep.GetPropietarios();
-        ViewBag.ListaPropietarios = listaPropietarios;
+        try
+        {
+            var inmueble = repoInmuble.ObtenerPorId(id);
+            ViewBag.Mensaje = TempData["Mensaje"];
+            return View(inmueble);
+        }
+        catch
+        {
+            throw;
+        }
+    }
+
+    // GET: Inmuebles/Create
+    [HttpGet]
+    public ActionResult Create()
+    {
+        ViewBag.listaPropietarios = repoPropietario.ObtenerTodos();
+        ViewBag.listaTipos = repoTipo.ObtenerTodos();
+        ViewBag.listaUsos = repoUso.ObtenerTodos();
         return View();
     }
 
-    // POST: inmuebles/Crear
+    // POST: Inmuebles/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult Crear(Inmueble i)
+    public ActionResult Create(Inmueble inmueble)
     {
-        try
-        {
-            RepositorioInmuebles repo = new RepositorioInmuebles();
-            repo.Alta(i);
-            return RedirectToAction(nameof(Index));
-        }
-        catch
-        {
-            return View();
-        }
+        repoInmuble.Alta(inmueble);
+        TempData["creado"] = "Si";
+        return RedirectToAction(nameof(Index));
     }
 
-    public ActionResult Editar(int id)
+    // GET: Inmuebles/Edit/5
+    [HttpGet]
+    public ActionResult Edit(int id)
     {
-        RepositorioPropietarios rep = new RepositorioPropietarios();
-        var listaPropietarios = rep.GetPropietarios();
-        ViewBag.ListaPropietarios = listaPropietarios;
+        ViewBag.listaPropietarios = repoPropietario.ObtenerTodos();
+        ViewBag.listaTipos = repoTipo.ObtenerTodos();
+        ViewBag.listaUsos = repoUso.ObtenerTodos();
 
-        RepositorioInmuebles repo = new RepositorioInmuebles();
-        var inmueble = repo.GetInmueble(id);
-        return View(inmueble);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public ActionResult Editar(int id, Inmueble i)
-    {
-        try
-        {
-            RepositorioInmuebles repo = new RepositorioInmuebles();
-            repo.Modificacion(i);
-
-            return RedirectToAction(nameof(Index));
-        }
-        catch
-        {
-            return View();
-        }
-    }
-
-    // GET: inmuebles/Delete/5
-    [Authorize(Roles = "Administrador")]
-    public ActionResult Eliminar(int id)
-    {
-        RepositorioInmuebles repo = new RepositorioInmuebles();
-        var inmueble = repo.GetInmueble(id);
-
-        // traer la info del propietario
-        if (inmueble != null && inmueble.PropietarioId != null)
-        {
-            RepositorioPropietarios repoPropietario = new RepositorioPropietarios();
-            var propietario = repoPropietario.GetPropietario(inmueble.PropietarioId);
-            if (propietario != null)
-            {
-                inmueble.Propietario = propietario;
-            }
-        }
+        var inmueble = repoInmuble.ObtenerPorId(id);
+        ViewBag.Mensaje = TempData["Mensaje"];
 
         return View(inmueble);
     }
 
-
-    // POST: inmuebles/Delete/5
+    // POST: Inmuebles/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Administrador")]
-    public ActionResult Eliminar(int id, Inmueble i)
+    public ActionResult Edit(int id, Inmueble inmueble)
     {
-        try
-        {
-            RepositorioInmuebles repo = new RepositorioInmuebles();
-            repo.Baja(id);
-            TempData["Mensaje"] = "Eliminación realizada correctamente";
-            return RedirectToAction(nameof(Index));
-        }
-        catch
-        {
-            return View();
-        }
+        repoInmuble.Modificacion(inmueble);
+        TempData["editado"] = "Si";
+        return RedirectToAction(nameof(Index));
     }
 
-    // inmuebles/Detalles/5
-    [Route("inmuebles/detalles/{id}")]
-    public ActionResult Detalles(int id)
+    // GET: Inmuebles/Delete/5
+    [Authorize(policy: "Administrador")]
+    [HttpGet]
+    public ActionResult Delete(int id)
     {
-        RepositorioInmuebles repo = new RepositorioInmuebles();
-        var inmueble = repo.GetInmueble(id);
-
-        RepositorioPropietarios rep = new RepositorioPropietarios();
-        var propietario = rep.GetPropietario(inmueble.PropietarioId);
-
-        inmueble.Propietario = propietario;
-
+        var inmueble = repoInmuble.ObtenerPorId(id);
+        ViewBag.Mensaje = TempData["Mensaje"];
         return View(inmueble);
     }
 
+    // POST: Inmuebles/Delete/5
+    [Authorize(policy: "Administrador")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult Delete(int id, Inmueble inmueble)
+    {
+        repoInmuble.Baja(id);
+        TempData["Eliminado"] = "Si";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public ActionResult BuscarInmuebles()
+    {
+        var lista = repoInmuble.ObtenerTodos();
+        ViewBag.listaTipos = repoTipo.ObtenerTodos();
+        ViewBag.listaUsos = repoUso.ObtenerTodos();
+        ViewBag.Mensaje = TempData["Mensaje"];
+        return View(lista);
+    }
+
+    [HttpPost]
+    public ActionResult BuscarInmuebles(InmuebleBusqueda ib)
+    {
+        var lista = repoInmuble.BuscarInmuebles(ib);
+        ViewBag.listaTipos = repoTipo.ObtenerTodos();
+        ViewBag.listaUsos = repoUso.ObtenerTodos();
+        ViewBag.Mensaje = TempData["Mensaje"];
+        return View(lista);
+    }
+
+    [HttpGet]
+    public ActionResult InmueblesEstados()
+    {
+        ViewBag.listaPropietarios = repoPropietario.ObtenerTodos();
+        var lista = repoInmuble.ObtenerTodos();
+        ViewBag.Mensaje = TempData["Mensaje"];
+        return View(lista);
+    }
+
+    [HttpPost]
+    public ActionResult InmueblesEstados(InmuebleBusqueda ib)
+    {
+        ViewBag.listaPropietarios = repoPropietario.ObtenerTodos();
+        var lista = repoInmuble.BuscarInmueblesEstado(ib);
+        return View(lista);
+    }
+
+    [HttpGet]
+    public ActionResult InmueblesContratos()
+    {
+        var lista = repoInmuble.ObtenerTodos();
+        return View(lista);
+    }
+
+    [HttpPost]
+    public ActionResult InmueblesContratos(InmuebleBusqueda ib)
+    {
+        var lista = repoInmuble.BuscarInmuebles(ib);
+        return View(lista);
+    }
 }

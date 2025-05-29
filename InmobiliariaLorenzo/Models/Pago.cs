@@ -1,29 +1,25 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace InmobiliariaLorenzo.Models
+namespace InmobiliariaLorenzo.Models;
+
+public class Pago
 {
-    public class Pago
-    {
-        public int Id { get; set; }
-        public int ContratoId { get; set; }
+    [Key]
+    [Display(Name = "N°")]
+    public int Id_Pago { get; set; } 
 
-        public Contrato Contrato { get; set; }
+    [Required, Display(Name = "Fecha de Pago")]
+    public DateTime Fecha { get; set; }
 
-        [DataType(DataType.Date)]
-        public DateTime FechaPago { get; set; }
 
-        public decimal Importe { get; set; }
+    [Required]
+    public Decimal Importe { get; set; }
 
-        public Pago()
-        {
 
-        }
+    [Required,Display(Name ="Contrato")]
+    public int Id_Contrato{ get; set; }
+    [ForeignKey(nameof(Id_Contrato))]
+    public Contrato? Contrato { get; set; }
 
-        public Pago(int contratoId, DateTime fechaPago, decimal importe)
-        {
-            ContratoId = contratoId;
-            FechaPago = fechaPago;
-            Importe = importe;
-        }
-    }
 }

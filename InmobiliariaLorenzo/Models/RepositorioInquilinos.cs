@@ -1,151 +1,141 @@
-using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
 using System.Data;
+using MySqlConnector;
+
 namespace InmobiliariaLorenzo.Models;
 
 using System;
 using Microsoft.Extensions.Configuration;
 
-public class RepositorioInquilinos
-{
-    readonly string connectionString = "Server=localhost;User=root;Password=;Database=inmobiliarialorenzo;";
+	public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
+	{
+		public RepositorioInquilino(IConfiguration configuration) : base(configuration)
+		{
+			//https://www.nuget.org/packages/Pomelo.EntityFrameworkCore.MySql/
+		}
+		public int Alta(Inquilino inquilino)
+		{
+			int res = -1;
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				var sql = @"INSERT INTO INQUILINOS(Apellido,Nombre,Dni,Telefono)
+            VALUES (@Apellido,@Nombre,@Dni,@Telefono);
+            SELECT LAST_INSERT_ID()"; ;//devuelve el id insertado (SCOPE_IDENTITY para sql)
+				using (var cmd = new MySqlCommand(sql, connection))
+				{
+					cmd.Parameters.AddWithValue("@Apellido", inquilino.Apellido);
+					cmd.Parameters.AddWithValue("@Nombre", inquilino.Nombre);
+					cmd.Parameters.AddWithValue("@Dni", inquilino.Dni);
+					cmd.Parameters.AddWithValue("@Telefono", inquilino.Telefono);
+					connection.Open();
+					res = Convert.ToInt32(cmd.ExecuteScalar());
+					inquilino.Id_Inquilino = res;
+					connection.Close();
+				}
+			}
+			return res;
+		}
+		public int Baja(int id)
+		{
+			int res = -1;
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				string sql = @$"DELETE FROM INQUILINOS WHERE {nameof(Inquilino.Id_Inquilino)} = @id";
+				using (var command = new MySqlCommand(sql, connection))
+				{
+					command.CommandType = CommandType.Text;
+					command.Parameters.AddWithValue("@id", id);
+					connection.Open();
+					res = command.ExecuteNonQuery();
+					connection.Close();
+				}
+			}
+			return res;
+		}
 
-    public RepositorioInquilinos()
-    {
+		public int Modificacion(Inquilino inquilino)
+		{
+			int res = -1;
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				string sql = @$"UPDATE INQUILINOS 
+					SET Apellido=@Apellido, Nombre=@Nombre, Dni=@Dni, Telefono=@Telefono 
+					WHERE {nameof(Inquilino.Id_Inquilino)} = @id";
+				using (var cmd = new MySqlCommand(sql, connection))
+				{
+					cmd.CommandType = CommandType.Text;
+					cmd.Parameters.AddWithValue("@Apellido", inquilino.Apellido);
+					cmd.Parameters.AddWithValue("@Nombre", inquilino.Nombre);
+					cmd.Parameters.AddWithValue("@Dni", inquilino.Dni);
+					cmd.Parameters.AddWithValue("@Telefono", inquilino.Telefono);
+					cmd.Parameters.AddWithValue("@id", inquilino.Id_Inquilino);
+					connection.Open();
+					res = cmd.ExecuteNonQuery();
+					connection.Close();
+				}
+			}
+			return res;
+		}
+		
+		public IList<Inquilino> ObtenerTodos()
+		{
+			IList<Inquilino> res = new List<Inquilino>();
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				var sql = "SELECT Id_Inquilino,Apellido,Nombre,Dni,Telefono FROM INQUILINOS";
+				using (var command = new MySqlCommand(sql, connection))
+				{
+					command.CommandType = CommandType.Text;
+					connection.Open();
+					var reader = command.ExecuteReader();
+					while (reader.Read())
+					{
+						Inquilino inquilino = new Inquilino
+						{
+							Id_Inquilino = reader.GetInt32(nameof(Inquilino.Id_Inquilino)),
+							Nombre = reader.GetString("Nombre"),
+							Apellido = reader.GetString("Apellido"),
+							Dni = reader.GetString("Dni"),
+							Telefono = reader.GetString("Telefono"),							
+						};
+						res.Add(inquilino);
+					}
+					connection.Close();
+				}
+			}
+			return res;
+		}
+		
+		virtual public Inquilino ObtenerPorId(int id)
+		{
+			Inquilino? inquilino = null;
+			using (var connection = new MySqlConnection(connectionString))
+			{
+				var sql = @"SELECT Id_Inquilino,Apellido,Nombre,Dni,Telefono
+            FROM INQUILINOS
+            WHERE Id_Inquilino = @id";
+				using (var command = new MySqlCommand(sql, connection))
+				{
+					command.Parameters.Add("@id", DbType.Int32).Value = id;
+					command.CommandType = CommandType.Text;
+					connection.Open();
+					var reader = command.ExecuteReader();
+					if (reader.Read())
+					{
+						inquilino = new Inquilino
+						{
+							Id_Inquilino = reader.GetInt32(nameof(Inquilino.Id_Inquilino)),
+							Nombre = reader.GetString("Nombre"),
+							Apellido = reader.GetString("Apellido"),
+							Dni = reader.GetString("Dni"),
+							Telefono = reader.GetString("Telefono"),							
+						};
+					}
+					connection.Close();
+				}
+			}
+			return inquilino;
+		}
+	}
 
-    }
-
-    public IList<Inquilino> GetInquilinos()
-    {
-        var inquilinos = new List<Inquilino>();
-        using (var connection = new MySqlConnection(connectionString))
-        {
-            var sql = $"SELECT {nameof(Inquilino.Id)}, {nameof(Inquilino.Nombre)}, {nameof(Inquilino.Apellido)}, {nameof(Inquilino.Email)}, {nameof(Inquilino.Dni)}, {nameof(Inquilino.Telefono)} FROM inquilinos";
-            using (var command = new MySqlCommand(sql, connection))
-            {
-                connection.Open();
-                using (var reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        inquilinos.Add(new Inquilino
-                        {
-                            Id = reader.GetInt32(nameof(Inquilino.Id)),
-                            Nombre = reader.GetString(nameof(Inquilino.Nombre)),
-                            Apellido = reader.GetString(nameof(Inquilino.Apellido)),
-                            Email = reader.GetString(nameof(Inquilino.Email)),
-                            Telefono = reader.GetString(nameof(Inquilino.Telefono)),
-                            Dni = reader.GetString(nameof(Inquilino.Dni))
-
-                        });
-                    }
-                }
-            }
-        }
-        return inquilinos;
-    }
-
-    public Inquilino? GetInquilino(int id)
-    {
-        Inquilino? inquilinos = null;
-        using (var connection = new MySqlConnection(connectionString))
-        {
-            var sql = $"SELECT {nameof(Inquilino.Id)}, {nameof(Inquilino.Nombre)}, {nameof(Inquilino.Apellido)}, {nameof(Inquilino.Email)}, {nameof(Inquilino.Dni)}, {nameof(Inquilino.Telefono)} FROM inquilinos WHERE {nameof(Inquilino.Id)} = @id";
-            using (var command = new MySqlCommand(sql, connection))
-            {
-                command.Parameters.AddWithValue("@id", id);
-                connection.Open();
-                using (var reader = command.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        inquilinos = new Inquilino
-                        {
-                            Id = reader.GetInt32(nameof(Inquilino.Id)),
-                            Nombre = reader.GetString(nameof(Inquilino.Nombre)),
-                            Apellido = reader.GetString(nameof(Inquilino.Apellido)),
-                            Email = reader.GetString(nameof(Inquilino.Email)),
-                            Telefono = reader.GetString(nameof(Inquilino.Telefono)),
-                            Dni = reader.GetString(nameof(Inquilino.Dni))
-
-                        };
-                    }
-                }
-            }
-        }
-        return inquilinos;
-    }
-
-    public int Alta(Inquilino i)
-    {
-        int res = -1;
-        using (var connection = new MySqlConnection(connectionString))
-        {
-            var sql = @$"INSERT INTO inquilinos ({nameof(Inquilino.Nombre)}, {nameof(Inquilino.Apellido)}, {nameof(Inquilino.Dni)}, 
-            {nameof(Inquilino.Email)}, {nameof(Inquilino.Telefono)}) VALUES (@{nameof(Inquilino.Nombre)}, @{nameof(Inquilino.Apellido)}, 
-            @{nameof(Inquilino.Dni)}, @{nameof(Inquilino.Email)}, @{nameof(Inquilino.Telefono)}); SELECT LAST_INSERT_ID();";
-            
-            using (var command = new MySqlCommand(sql, connection))
-            {
-                command.CommandType = CommandType.Text;
-                command.Parameters.AddWithValue("@nombre", i.Nombre);
-                command.Parameters.AddWithValue("@apellido", i.Apellido);
-                command.Parameters.AddWithValue("@dni", i.Dni);
-                command.Parameters.AddWithValue("@telefono", i.Telefono);
-                command.Parameters.AddWithValue("@email", i.Email);
-
-                connection.Open();
-                res = Convert.ToInt32(command.ExecuteScalar());
-                i.Id = res;
-                connection.Close();
-            }
-        }
-        return res;
-    }
-
-    public bool Baja(int inquilinoId)
-    {
-        using (var connection = new MySqlConnection(connectionString))
-        {
-            string sql = "DELETE FROM inquilinos WHERE Id = @id";
-            using (var command = new MySqlCommand(sql, connection))
-            {
-                command.Parameters.AddWithValue("@id", inquilinoId);
-                connection.Open();
-                int rowsAffected = command.ExecuteNonQuery();
-                connection.Close();
-
-                return rowsAffected > 0;
-            }
-        }
-    }
-
-    public bool Modificacion(Inquilino p)
-    {
-        using (var connection = new MySqlConnection(connectionString))
-        {
-            string sql = @"UPDATE inquilinos SET 
-                      Nombre = @nombre,
-                      Apellido = @apellido,
-                      Dni = @dni,
-                      Email = @email,
-                      Telefono = @telefono
-                      WHERE Id = @id";
-
-            using (var command = new MySqlCommand(sql, connection))
-            {
-                command.Parameters.AddWithValue("@nombre", p.Nombre);
-                command.Parameters.AddWithValue("@apellido", p.Apellido);
-                command.Parameters.AddWithValue("@dni", p.Dni);
-                command.Parameters.AddWithValue("@telefono", p.Telefono);
-                command.Parameters.AddWithValue("@email", p.Email);
-                command.Parameters.AddWithValue("@id", p.Id);
-
-                connection.Open();
-                int rowsAffected = command.ExecuteNonQuery();
-                connection.Close();
-
-                return rowsAffected > 0;
-            }
-        }
-    }
-}

@@ -1,181 +1,227 @@
-﻿using MySql.Data.MySqlClient;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using InmobiliariaLorenzo.Models;
+﻿using System.Drawing;
+using MySql.Data.MySqlClient;
+
+namespace InmobiliariaLorenzo.Models;
 
 public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
 {
     public RepositorioUsuario(IConfiguration configuration) : base(configuration)
     {
+        //https://www.nuget.org/packages/Pomelo.EntityFrameworkCore.MySql/
     }
-
-    public int Alta(Usuario e)
+    public int Alta(Usuario usuario)
     {
-        int res = -1;
-        using (var connection = new MySqlConnection(connectionString))
+        var res = -1;
+
+        using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
-            string sql = @"INSERT INTO Usuarios 
-                (Nombre, Apellido, Avatar, Email, Clave, Rol) 
-                VALUES (@nombre, @apellido, @avatar, @email, @clave, @rol);
-                SELECT LAST_INSERT_ID();";
+            var sql = @"INSERT INTO USUARIOS(Apellido,Nombre,Mail,Password,Rol,Avatar)
+            VALUES (@Apellido,@Nombre,@Mail,@Password,@Rol,@Avatar);
+            SELECT LAST_INSERT_ID()";
 
-            using (var command = new MySqlCommand(sql, connection))
+            using (MySqlCommand cmd = new MySqlCommand(sql, conn))
             {
-                command.Parameters.AddWithValue("@nombre", e.Nombre);
-                command.Parameters.AddWithValue("@apellido", e.Apellido);
-                command.Parameters.AddWithValue("@avatar", string.IsNullOrEmpty(e.Avatar) ? DBNull.Value : e.Avatar);
-                command.Parameters.AddWithValue("@email", e.Email);
-                command.Parameters.AddWithValue("@clave", e.Clave);
-                command.Parameters.AddWithValue("@rol", e.Rol);
+                cmd.Parameters.AddWithValue("@Apellido", usuario.Apellido);
+                cmd.Parameters.AddWithValue("@Nombre", usuario.Nombre);
+                cmd.Parameters.AddWithValue("@Mail", usuario.Mail);
+                cmd.Parameters.AddWithValue("@Password", usuario.Password);
+                cmd.Parameters.AddWithValue("@Rol", usuario.Rol);
+                if (string.IsNullOrEmpty(usuario.Avatar))
+                {
+                    cmd.Parameters.AddWithValue("@Avatar", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@Avatar", usuario.Avatar);
+                }
 
-                connection.Open();
-                res = Convert.ToInt32(command.ExecuteScalar());
-                e.Id = res;
-                connection.Close();
+                conn.Open();
+                res = Convert.ToInt32(cmd.ExecuteScalar());
+                usuario.Id_Usuario = res;
+                conn.Close();
             }
+            return res;
         }
-        return res;
+
     }
 
     public int Baja(int id)
     {
-        int res = -1;
-        using (var connection = new MySqlConnection(connectionString))
+        var res = -3;
+
+        using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
-            string sql = "DELETE FROM Usuarios WHERE Id = @id";
-            using (var command = new MySqlCommand(sql, connection))
+            var sql = @"DELETE FROM USUARIOS
+            WHERE Id_Usuario = @id";
+
+            using (MySqlCommand cmd = new MySqlCommand(sql, conn))
             {
-                command.Parameters.AddWithValue("@id", id);
-                connection.Open();
-                res = command.ExecuteNonQuery();
-                connection.Close();
+                cmd.Parameters.AddWithValue("@id", id);
+                conn.Open();
+                res = cmd.ExecuteNonQuery();
+                conn.Close();
             }
         }
         return res;
     }
 
-    public int Modificacion(Usuario e)
+    public int Modificacion(Usuario usuario)
     {
-        int res = -1;
-        using (var connection = new MySqlConnection(connectionString))
+        var res = -2;
+
+        using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
-            string sql = @"UPDATE Usuarios 
-                SET Nombre=@nombre, Apellido=@apellido, Avatar=@avatar, Email=@email, Clave=@clave, Rol=@rol
-                WHERE Id = @id";
+            var sql = @"UPDATE USUARIOS
+            SET Apellido=@Apellido,Nombre=@Nombre,Mail=@Mail,Rol=@Rol,Avatar=@Avatar 
+            WHERE Id_Usuario = @id";
 
-            using (var command = new MySqlCommand(sql, connection))
+            using (MySqlCommand cmd = new MySqlCommand(sql, conn))
             {
-                command.Parameters.AddWithValue("@nombre", e.Nombre);
-                command.Parameters.AddWithValue("@apellido", e.Apellido);
-                command.Parameters.AddWithValue("@avatar", e.Avatar);
-                command.Parameters.AddWithValue("@email", e.Email);
-                command.Parameters.AddWithValue("@clave", e.Clave);
-                command.Parameters.AddWithValue("@rol", e.Rol);
-                command.Parameters.AddWithValue("@id", e.Id);
-
-                connection.Open();
-                res = command.ExecuteNonQuery();
-                connection.Close();
+                cmd.Parameters.AddWithValue("@Apellido", usuario.Apellido);
+                cmd.Parameters.AddWithValue("@Nombre", usuario.Nombre);
+                cmd.Parameters.AddWithValue("@Mail", usuario.Mail);
+                cmd.Parameters.AddWithValue("@Rol", usuario.Rol);
+                cmd.Parameters.AddWithValue("@Avatar", usuario.Avatar);
+                cmd.Parameters.AddWithValue("@id", usuario.Id_Usuario);
+                conn.Open();
+                res = cmd.ExecuteNonQuery();
+                conn.Close();
             }
+            return res;
         }
-        return res;
     }
 
     public IList<Usuario> ObtenerTodos()
     {
-        IList<Usuario> res = new List<Usuario>();
-        using (var connection = new MySqlConnection(connectionString))
+        var res = new List<Usuario>();
+
+        using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
-            string sql = "SELECT Id, Nombre, Apellido, Avatar, Email, Clave, Rol FROM Usuarios";
-            using (var command = new MySqlCommand(sql, connection))
+            //Uso IFNULL(Avatar, '') por que me da error al traer los valores NULOS en las listas
+
+            var sql = "SELECT Id_Usuario,Apellido,Nombre,Mail,Password,Rol,IFNULL(Avatar, '') Avatar FROM USUARIOS";
+
+            using (MySqlCommand cmd = new MySqlCommand(sql, conn))
             {
-                connection.Open();
-                using (var reader = command.ExecuteReader())
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        Usuario e = new Usuario
+                        res.Add(new Usuario
                         {
-                            Id = reader.GetInt32("Id"),
-                            Nombre = reader.GetString("Nombre"),
+                            Id_Usuario = reader.GetInt32("Id_Usuario"),
                             Apellido = reader.GetString("Apellido"),
-                            Avatar = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? "" : reader.GetString("Avatar"),
-                            Email = reader.GetString("Email"),
-                            Clave = reader.GetString("Clave"),
+                            Nombre = reader.GetString("Nombre"),
+                            Mail = reader.GetString("Mail"),
+                            Password = reader.GetString("Password"),
                             Rol = reader.GetInt32("Rol"),
-                        };
-                        res.Add(e);
+                            Avatar = reader.GetString("Avatar"),
+                        });
                     }
                 }
-                connection.Close();
+                conn.Close();
             }
         }
+
         return res;
     }
 
     public Usuario ObtenerPorId(int id)
     {
-        Usuario? e = null;
-        using (var connection = new MySqlConnection(connectionString))
+        var res = new Usuario();
+
+        using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
-            string sql = @"SELECT Id, Nombre, Apellido, Avatar, Email, Clave, Rol FROM Usuarios WHERE Id = @id";
-            using (var command = new MySqlCommand(sql, connection))
+            var sql = @" SELECT Id_Usuario,Apellido,Nombre,Mail,Password,Rol,IFNULL(Avatar, '') Avatar  
+            FROM USUARIOS
+            WHERE Id_Usuario = @id";
+
+            using (MySqlCommand cmd = new MySqlCommand(sql, conn))
             {
-                command.Parameters.AddWithValue("@id", id);
-                connection.Open();
-                using (var reader = command.ExecuteReader())
+                cmd.Parameters.AddWithValue("@id", id);
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
-                    if (reader.Read())
+                    while (reader.Read())
                     {
-                        e = new Usuario
+                        res = (new Usuario
                         {
-                            Id = reader.GetInt32("Id"),
-                            Nombre = reader.GetString("Nombre"),
+                            Id_Usuario = reader.GetInt32("Id_Usuario"),
                             Apellido = reader.GetString("Apellido"),
-                            Avatar = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? "" : reader.GetString("Avatar"),
-                            Email = reader.GetString("Email"),
-                            Clave = reader.GetString("Clave"),
+                            Nombre = reader.GetString("Nombre"),
+                            Mail = reader.GetString("Mail"),
+                            Password = reader.GetString("Password"),
                             Rol = reader.GetInt32("Rol"),
-                        };
+                            Avatar = reader.GetString("Avatar"),
+
+                        });
                     }
                 }
-                connection.Close();
+                conn.Close();
             }
         }
-        return e;
+        return res;
     }
 
-    public Usuario ObtenerPorEmail(string email)
+    public Usuario ObtenerPorEmail(string mail)
     {
-        Usuario? e = null;
-        using (var connection = new MySqlConnection(connectionString))
+        var res = new Usuario();
+
+        using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
-            string sql = @"SELECT Id, Nombre, Apellido, Avatar, Email, Clave, Rol FROM Usuarios WHERE Email = @email";
-            using (var command = new MySqlCommand(sql, connection))
+            var sql = @" SELECT Id_Usuario,Apellido,Nombre,Mail,Password,Rol,IFNULL(Avatar, '') Avatar
+            FROM USUARIOS
+            WHERE Mail = @mail";
+
+            using (MySqlCommand cmd = new MySqlCommand(sql, conn))
             {
-                command.Parameters.AddWithValue("@email", email);
-                connection.Open();
-                using (var reader = command.ExecuteReader())
+                cmd.Parameters.AddWithValue("@mail", mail);
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
-                    if (reader.Read())
+                    while (reader.Read())
                     {
-                        e = new Usuario
+                        res = (new Usuario
                         {
-                            Id = reader.GetInt32("Id"),
-                            Nombre = reader.GetString("Nombre"),
+                            Id_Usuario = reader.GetInt32("Id_Usuario"),
                             Apellido = reader.GetString("Apellido"),
-                            Avatar = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? "" : reader.GetString("Avatar"),
-                            Email = reader.GetString("Email"),
-                            Clave = reader.GetString("Clave"),
+                            Nombre = reader.GetString("Nombre"),
+                            Mail = reader.GetString("Mail"),
+                            Password = reader.GetString("Password"),
                             Rol = reader.GetInt32("Rol"),
-                        };
+                            Avatar = reader.GetString("Avatar"),
+
+                        });
                     }
                 }
-                connection.Close();
+                conn.Close();
             }
         }
-        return e;
+        return res;
     }
+
+    public int CambiarPassword(int id, String pass)
+    {
+        var res = -2;
+
+        using (MySqlConnection conn = new MySqlConnection(connectionString))
+        {
+            var sql = @"UPDATE USUARIOS
+            SET Password=@Password 
+            WHERE Id_Usuario = @id";
+
+            using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@Password", pass);
+                cmd.Parameters.AddWithValue("@id", id);
+                conn.Open();
+                res = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+            return res;
+        }
+    }
+
 }
+

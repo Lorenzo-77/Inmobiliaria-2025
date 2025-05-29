@@ -1,243 +1,188 @@
-using System.Windows.Markup;
 using Microsoft.AspNetCore.Mvc;
 using InmobiliariaLorenzo.Models;
-using MySqlX.XDevAPI.CRUD;
 using Microsoft.AspNetCore.Authorization;
 using InmobiliariaLorenzo.ViewModels;
 
-namespace InmobiliariaLorenzo.Controllers;
-
-public class ContratosController : Controller
+namespace InmobiliariaLorenzo.Controllers
 {
-    private readonly ILogger<ContratosController> _logger;
-
-    public ContratosController(ILogger<ContratosController> logger)
+    [Authorize]
+    public class ContratosController : Controller
     {
-        _logger = logger;
-    }
+        private readonly IRepositorioContrato repoContrato;
+        private readonly IRepositorioInmueble repoInmuble;
+        private readonly IRepositorioInquilino repoInquilino;
+        private readonly IConfiguration config;
 
-
-
-    public IActionResult Index(int? estadoId, int? inmId, DateTime? fechaIList, DateTime? fechaFList, int? diasId)
-    {
-        RepositorioContratos rp = new RepositorioContratos();
-        IList<Contrato> lista;
-        var fin = DateTime.Now;
-
-        if (estadoId.Equals(1))
+        public ContratosController(IRepositorioContrato repo, IRepositorioInmueble repIn, IRepositorioInquilino repoInq, IConfiguration config)
         {
-            lista = rp.GetContratosActivos(fin);
-        }
-        else if (estadoId.Equals(2))
-        {
-            lista = rp.GetContratosInactivos(fin);
-        }
-        else if (inmId.HasValue)
-        {
-            lista = rp.GetPorInmuebles(inmId.Value);
-        }
-        else if (fechaIList.HasValue && fechaFList.HasValue)
-        {
-            lista = rp.GetContratosPorRango(fechaIList.Value, fechaFList.Value);
-        }
-        else if (diasId.HasValue)
-        {
-            lista = rp.GetContratosAVencer(fin.AddDays(diasId.Value));
-        }
-        else
-        {
-            lista = rp.GetContratos();
+            this.repoContrato = repo;
+            this.repoInmuble = repIn;
+            this.repoInquilino = repoInq;
+            this.config = config;
         }
 
-        return View(lista);
-    }
-
-
-    public ActionResult Crear()
-    {
-        RepositorioInquilinos repInquilinos = new RepositorioInquilinos();
-        var listaInquilinos = repInquilinos.GetInquilinos();
-
-        RepositorioInmuebles repInmuebles = new RepositorioInmuebles();
-        var listaInmuebles = repInmuebles.GetInmuebles();
-
-        for (int i = 0; i < listaInmuebles.Count; i++)
+        // GET: Contratos
+        [Route("[controller]/Index")]
+        public ActionResult Index()
         {
-            if (listaInmuebles[i].Disponible.Equals(false))
+            var lista = repoContrato.ObtenerTodos();
+            return View(lista);
+        }
+
+        // GET: Contratos/Details/5
+        public ActionResult Details(int id)
+        {
+            var lista = repoContrato.ObtenerPorId(id);
+            return View(lista);
+        }
+
+        // GET: Contratos/Create
+        [HttpGet]
+        public ActionResult Create()
+        {
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
+            return View();
+        }
+
+        // POST: Contratos/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(Contrato contrato)
+        {
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
+
+            if (repoInmuble.VerificarDisponibilidad(contrato.Id_Inmueble, contrato.Fecha_Inicio, contrato.Fecha_Fin))
             {
-                listaInmuebles.RemoveAt(i);
-                i--;
-            }
-        }
-
-        ViewBag.ListaInquilinos = listaInquilinos;
-        ViewBag.ListaInmuebles = listaInmuebles;
-
-        return View();
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public ActionResult Crear(Contrato c)
-    {
-        try
-        {
-            if (c.FechaInicio <= c.FechaFin)
-            {
-                RepositorioContratos repo = new RepositorioContratos();
-                RepositorioInmuebles repoi = new RepositorioInmuebles();
-                repo.Alta(c);
-                repoi.altaContrato(c);
+                repoContrato.Alta(contrato);
+                TempData["creado"] = "Si";
                 return RedirectToAction(nameof(Index));
             }
             else
             {
-                TempData["Mensaje"] = "Ingrese una fecha final posterior a la fecha de inicio";
-                return RedirectToAction(nameof(Crear));
+                TempData["Otro"] = "No se pudo crear el contrato no hay disponibilidad.";
+                return RedirectToAction(nameof(Index));
             }
         }
-        catch
+
+        // GET: Contratos/Edit/5
+        [HttpGet]
+        public ActionResult Edit(int id)
         {
-            return View();
+            var lista = repoContrato.ObtenerPorId(id);
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
+
+            ViewBag.Mensaje = TempData["Mensaje"];
+
+            return View(lista);
         }
-    }
 
-    public ActionResult Editar(int id)
-    {
-
-        RepositorioInquilinos rep = new RepositorioInquilinos();
-        var listaInquilinos = rep.GetInquilinos();
-        ViewBag.listaInquilinos = listaInquilinos;
-
-        RepositorioPropietarios rep1 = new RepositorioPropietarios();
-        var listaPropietarios = rep1.GetPropietarios();
-        ViewBag.ListaPropietarios = listaPropietarios;
-
-        RepositorioContratos repo = new RepositorioContratos();
-        var contrato = repo.GetContrato(id);
-        return View(contrato);
-    }
-
-
-
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public ActionResult Editar(int id, Contrato i)
-    {
-        try
+        // POST: Contratos/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(Contrato contrato)
         {
-            RepositorioContratos repo = new RepositorioContratos();
-            repo.Modificacion(i);
+            repoContrato.Modificacion(contrato);
+            TempData["editado"] = "Si";
             return RedirectToAction(nameof(Index));
         }
-        catch
-        {
-            return View();
-        }
-    }
-    [Authorize(Roles = "Administrador")]
-    public ActionResult Eliminar(int id)
-    {
-        RepositorioContratos repo = new RepositorioContratos();
-        var contrato = repo.GetContrato(id);
 
-        if (contrato != null && contrato.InquilinoId != null && contrato.InmuebleId != null)
+        // GET: Contratos/Delete/5
+        [Authorize(policy: "Administrador")]
+        [HttpGet]
+        public ActionResult Delete(int id)
         {
-            RepositorioInquilinos repoInquilino = new RepositorioInquilinos();
-            var inquilino = repoInquilino.GetInquilino(contrato.InquilinoId);
-            if (inquilino != null)
-            {
-                contrato.Inquilino = inquilino;
-            }
-
-            RepositorioInmuebles repoInmuebles = new RepositorioInmuebles();
-            var inmueble = repoInmuebles.GetInmueble(contrato.InmuebleId);
-            if (inmueble != null)
-            {
-                contrato.Inmueble = inmueble;
-            }
+            var lista = repoContrato.ObtenerPorId(id);
+            return View(lista);
         }
 
-        return View(contrato);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Administrador")]
-    public ActionResult Eliminar(Contrato i)
-    {
-        try
+        // POST: Contratos/Delete/5
+        [Authorize(policy: "Administrador")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(int id, Contrato contrato)
         {
-            RepositorioContratos repo = new RepositorioContratos();
-            RepositorioInmuebles repoi = new RepositorioInmuebles();
-            repo.Baja(i);
-            repoi.bajaContrato(i);
-            //TempData["Mensaje"] = "Eliminación realizada correctamente";
+            repoContrato.Baja(id);
+            TempData["eliminado"] = "Si";
             return RedirectToAction(nameof(Index));
         }
-        catch
+
+        [HttpGet]
+        public ActionResult ContratosPorInquilino(int id)
         {
-            return View();
-        }
-    }
-
-
-    public ActionResult Pagos(int id)
-    {
-
-        RepositorioContratos repo = new RepositorioContratos();
-        IList<Pago> lista;
-        lista = repo.GetPagos();
-        
-        var vm = new ViewModelPagoContrato
-        {
-            lpago = lista,
-        };
-        return View(vm);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public ActionResult Pagos(Pago p)
-    {
-        try
-        {
-                RepositorioContratos repo = new RepositorioContratos();
-                repo.Pagar(p);
-                return RedirectToAction(nameof(Pagos));
-        }
-        catch
-        {
-            return View();
-        }
-    }
-
-    [Route("contratos/detalles/{id}")]
-    public ActionResult Detalles(int id)
-    {
-        RepositorioContratos repo = new RepositorioContratos();
-        var contrato = repo.GetContrato(id);
-
-        if (contrato != null)
-        {
-            RepositorioInquilinos repInquilinos = new RepositorioInquilinos();
-            var inquilino = repInquilinos.GetInquilino(contrato.InquilinoId);
-            contrato.Inquilino = inquilino;
-
-            RepositorioInmuebles repInmuebles = new RepositorioInmuebles();
-            var inmueble = repInmuebles.GetInmueble(contrato.InmuebleId);
-            contrato.Inmueble = inmueble;
-
-            RepositorioPropietarios repPropietarios = new RepositorioPropietarios();
-            var propietario = repPropietarios.GetPropietario(contrato.Inmueble.PropietarioId);
-            contrato.Inmueble.Propietario = propietario;
+            var lista = repoContrato.ObtenerContratosPorInquilino(id);
+            return View(lista);
         }
 
-        return View(contrato);
+
+        [HttpGet]
+        public ActionResult ContratosVigentes()
+        {
+            var lista = repoContrato.ObtenerContratosVigentes();
+            return View(lista);
+        }
+
+        [HttpGet]
+        public ActionResult ContratosInmuebles()
+        {
+            var lista = repoContrato.ObtenerTodos();
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            return View(lista);
+        }
+
+        [HttpPost]
+        public ActionResult ContratosInmuebles(ContratoBusqueda cb)
+        {
+            var lista = repoContrato.ObtenerContratosPorInmueble(cb);
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            return View(lista);
+        }
+
+
+        [HttpGet]
+        public ActionResult CreateContrato(int id_inmueble = 0)
+        {
+            ViewBag.id_inmueble = id_inmueble;
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
+
+            return View("Create");
+        }
+
+        [HttpGet]
+        public ActionResult FinalizarContrato(int id, int id_inquilino = 0)
+        {
+            var lista = repoContrato.ObtenerPorId(id);
+            ViewBag.id_inquilino = id_inquilino;
+            ViewBag.Monto = repoContrato.CalcularMontoCancelacion(id);
+            return View(lista);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult FinalizarContrato(int id, Contrato contrato, int id_inquilino = 0)
+        {
+            ViewBag.id_inquilino = id_inquilino;
+            repoContrato.FinalizarContrato(id);
+            TempData["Otro"] = "Contrato Finalizado Correctamente.";
+            return RedirectToAction(nameof(Index));
+
+        }
+
+        [HttpGet]
+        public ActionResult RenovarContrato(int id_inmueble = 0, int id_inquilino = 0)
+        {
+            ViewBag.id_inmueble = id_inmueble;
+            ViewBag.id_inquilino = id_inquilino;
+
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
+
+            return View("Create");
+        }
+
+
     }
-
-
-    
-
 }

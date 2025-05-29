@@ -1,11 +1,11 @@
-using MySql.Data.MySqlClient;
-using System.Data;
-namespace InmobiliariaLorenzo.Models;
+using InmobiliariaLorenzo.Controllers;
 
-using System;
-using Microsoft.Extensions.Configuration;
-
-	public interface IRepositorioUsuario : IRepositorio<Usuario>
-	{
-		Usuario ObtenerPorEmail(string email);
-	} 
+namespace InmobiliariaLorenzo.Models
+{
+    public interface IRepositorioUsuario : IRepositorio<Usuario>
+	{		
+		Usuario ObtenerPorEmail(string mail);
+		int CambiarPassword(int id, String pass);
+	}   
+   
+}

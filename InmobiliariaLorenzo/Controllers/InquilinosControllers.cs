@@ -1,90 +1,102 @@
-using System.Windows.Markup;
-using Microsoft.AspNetCore.Mvc;
 using InmobiliariaLorenzo.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace InmobiliariaLorenzo.Controllers;
 
+[Authorize]
 public class InquilinosController : Controller
 {
-    private readonly ILogger<InquilinosController> _logger;
+	private readonly IRepositorioInquilino repositorio;
+	private readonly IConfiguration config;
 
-    public InquilinosController(ILogger<InquilinosController> logger)
-    {
-        _logger = logger;
-    }
+	public InquilinosController(IRepositorioInquilino repo, IConfiguration config)
+	{
+		this.repositorio = repo;
+		this.config = config;
+	}
 
-    public IActionResult Index()
-    {
-        RepositorioInquilinos rp = new RepositorioInquilinos();
-        var lista = rp.GetInquilinos();
-        return View(lista);
-    }
+	// GET: Inquilino
+	[Route("[controller]/Index")]
+	public ActionResult Index()
+	{
+		var lista = repositorio.ObtenerTodos();
+		ViewBag.Id = TempData["Id"];
+		if (TempData.ContainsKey("Mensaje"))
+			ViewBag.Mensaje = TempData["Mensaje"];
+		return View(lista);
+	}
+	// GET: Inquilino/Details/5
+	public ActionResult Details(int id)
+	{
+		var lista = repositorio.ObtenerPorId(id);
+		ViewBag.Mensaje = TempData["Mensaje"];
+		return View(lista);
+	}
 
-    public ActionResult Crear()
-        {
-            return View();
-        }
+	// GET: Inquilino/Edit/5
+	public ActionResult Edit(int id)
+	{
+		var entidad = repositorio.ObtenerPorId(id);
+		return View(entidad);//pasa el modelo a la vista
+	}
 
-    [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Crear(Inquilino p)
-        {
-            try
-            {
-                RepositorioInquilinos repo = new RepositorioInquilinos();
-                repo.Alta(p);
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-    
-    public ActionResult Editar(int id)
-        {
-            RepositorioInquilinos repo = new RepositorioInquilinos();
-            var inquilino = repo.GetInquilino(id);
-            return View(inquilino);
-        }
+	// POST: Inquilino/Edit/5
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public ActionResult Edit(int id, Inquilino entidad)
+	{
+		Inquilino? p = null;
+		p = repositorio.ObtenerPorId(id);
+		////////////////////////////////////////
+		p.Nombre = entidad.Nombre;
+		p.Apellido = entidad.Apellido;
+		p.Dni = entidad.Dni;
+		p.Telefono = entidad.Telefono;
+		repositorio.Modificacion(p);
+		TempData["editado"] = "Si";
+		return RedirectToAction(nameof(Index));
+	}
 
-    [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Editar(int id, Inquilino p)
-        {
-            try
-            {
-                RepositorioInquilinos repo = new RepositorioInquilinos();
-                repo.Modificacion(p);
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
+	// GET: Inquilino/Create
+	public ActionResult Create()
+	{
+		return View();
+	}
+	// POST: Inquilino/Create
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public ActionResult Create(Inquilino inquilino)
+	{
+		if (ModelState.IsValid)// Pregunta si el modelo es válido
+		{
+			repositorio.Alta(inquilino);
+			TempData["Id"] = inquilino.Id_Inquilino;
+			TempData["creado"] = "Si";
+			return RedirectToAction(nameof(Index));
+		}
+		else
+			return View(inquilino);
+	}
 
-    public ActionResult Eliminar(int id)
-        {
-            RepositorioInquilinos repo = new RepositorioInquilinos();
-            var inquilino = repo.GetInquilino(id);
-            return View(inquilino);
-        }
+	// GET: Inquilino/Delete/5
+	[Authorize(policy: "Administrador")]
+	[HttpGet]
 
-    [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Eliminar(int id, Inquilino p)
-        {
-            try
-            {
-                RepositorioInquilinos repo = new RepositorioInquilinos();
-                repo.Baja(id);
-                TempData["Mensaje"] = "Eliminación realizada correctamente";
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }    
+	public ActionResult Delete(int id)
+	{
+		var entidad = repositorio.ObtenerPorId(id);
+		return View(entidad);
+	}
+
+	// POST: Inquilino/Delete/5
+	[Authorize(policy: "Administrador")]
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public ActionResult Delete(int id, Propietario entidad)
+	{
+		repositorio.Baja(id);
+		TempData["eliminado"] = "Si";
+		return RedirectToAction(nameof(Index));
+	}
 }

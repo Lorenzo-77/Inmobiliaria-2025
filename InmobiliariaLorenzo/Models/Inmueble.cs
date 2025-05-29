@@ -1,71 +1,45 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InmobiliariaLorenzo.Models;
 
 public class Inmueble
 {
-    public int Id { get; set; }
+    [Key]
+    [Display(Name = "N°")]
+    public int Id_Inmueble { get; set; } // ? = permite valores nulos
 
-    [Required(ErrorMessage = "El propietario es obligatorio")]
-    public int PropietarioId { get; set; }
+    [Required, Display(Name = "Dirección")]
+    public string? Direccion { get; set; }
 
-    [Required(ErrorMessage = "La dirección es obligatoria")]
-    public string Direccion { get; set; }
+    [Required]
+    public int Ambientes { get; set; }
 
-    [Required(ErrorMessage = "El uso es obligatorio")]
-    public UsoInmueble Uso { get; set; }
+    [Required]
+    public decimal Latitud { get; set; }
 
-    [Required(ErrorMessage = "El tipo es obligatorio")]
-    public TipoInmueble Tipo { get; set; }
+    [Required]
+    public decimal Longitud { get; set; }
 
-    [Required(ErrorMessage = "La cantidad de ambientes es obligatoria")]
-    [Range(1, 100, ErrorMessage = "Debe tener al menos un ambiente")]
-    public int? Ambientes { get; set; }
-
-    public double? Latitud { get; set; }
-    public double? Longitud { get; set; }
-
-    [Required(ErrorMessage = "El precio es obligatorio")]
-    [Range(1, double.MaxValue, ErrorMessage = "El precio debe ser mayor a 0")]
+    [Required]
     public decimal Precio { get; set; }
 
-    public bool Activo { get; set; }
-    public bool Disponible { get; set; }
+    [Required]
+    public bool? Activo { get; set; }
 
-    public Propietario? Propietario { get; set; }
+    [Display(Name = "Uso")]
+    public int Id_Uso { get; set; }
+    [ForeignKey(nameof(Id_Uso))]
+    public Uso? Uso { get; set; }
 
-    public Inmueble() { }
+    [Display(Name = "Tipo")]
+    public int Id_Tipo { get; set; }
+    [ForeignKey(nameof(Id_Tipo))]
+    public Tipo? Tipo { get; set; }
 
-    public Inmueble(int id, int propietarioId, Propietario propietario, string direccion, UsoInmueble uso, TipoInmueble tipo, int? ambientes, double? latitud, double? longitud, decimal precio, bool activo, bool disponible)
-    {
-        Id = id;
-        PropietarioId = propietarioId;
-        Propietario = propietario;
-        Direccion = direccion;
-        Uso = uso;
-        Tipo = tipo;
-        Ambientes = ambientes;
-        Latitud = latitud;
-        Longitud = longitud;
-        Precio = precio;
-        Activo = activo;
-        Disponible = disponible;
-    }
-}
-
-
-// Enumerador para Uso de Inmueble
-public enum UsoInmueble
-{
-    Comercial = 1,
-    Personal = 2
-}
-
-// Enumerador para Tipo de Inmueble
-public enum TipoInmueble
-{
-    Casa = 1,
-    Oficina = 2,
-    Departamento = 3,
-    Almacen = 4
+    [Display(Name = "Titular")]
+    public int Id_Propietario { get; set; }
+    [ForeignKey(nameof(Id_Propietario))]
+    public Propietario? Titular { get; set; }
+    
 }
