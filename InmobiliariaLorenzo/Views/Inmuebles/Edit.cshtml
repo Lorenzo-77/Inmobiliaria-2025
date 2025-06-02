@@ -1,105 +1,95 @@
 @model InmobiliariaLorenzo.Models.Inmueble
+
 @{
     ViewData["Title"] = "Editar Inmueble";
+    var listaPropietarios = (List<Propietario>)ViewBag.listaPropietarios;
+    var listaUsos = (List<Uso>)ViewBag.listaUsos;
+    var listaTipos = (List<Tipo>)ViewBag.listaTipos;
 }
-
-<link rel="stylesheet" href="~/css/styles.css" asp-append-version="true" />
-<script src="https://kit.fontawesome.com/708362d465.js" crossorigin="anonymous"></script>
 
 <h2 class="mb-4">Editar Inmueble</h2>
 
-<div class="card shadow-sm p-4">
-    <form asp-action="Edit">
-        <input asp-for="Id_Inmueble" type="hidden" />
+<div class="card shadow rounded-3">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Datos del Inmueble</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" name="Id_Inmueble" value="@Model.Id_Inmueble" />
 
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-        <div class="row g-3">
-            <!-- Columna 1 -->
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label asp-for="Id_Propietario" class="form-label">Propietario</label>
-                    <select asp-for="Id_Propietario" class="form-control">
-                        @foreach (var propietario in ViewBag.ListaPropietarios)
-                        {
-                            <option value="@propietario.Id">@propietario.Nombre @propietario.Apellido</option>
-                        }
-                    </select>
-                    <span asp-validation-for="Id_Propietario" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
+            <div class="row g-3">
+                <div class="col-md-6">
                     <label asp-for="Direccion" class="form-label"></label>
                     <input asp-for="Direccion" class="form-control" />
                     <span asp-validation-for="Direccion" class="text-danger"></span>
                 </div>
-
-                <div class="form-group">
-                    <label asp-for="Tipo" class="form-label"></label>
-                    <select asp-for="Tipo" class="form-control">
-                        <option value="1">Casa</option>
-                        <option value="2">Oficina</option>
-                        <option value="3">Departamento</option>
-                        <option value="4">Almacén</option>
-                    </select>
-                    <span asp-validation-for="Tipo" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
+                <div class="col-md-6">
                     <label asp-for="Ambientes" class="form-label"></label>
                     <input asp-for="Ambientes" class="form-control" />
                     <span asp-validation-for="Ambientes" class="text-danger"></span>
                 </div>
-
-                <div class="form-group">
-                    <label asp-for="Precio" class="form-label"></label>
-                    <input asp-for="Precio" class="form-control" />
-                    <span asp-validation-for="Precio" class="text-danger"></span>
-                </div>
-            </div>
-
-            <!-- Columna 2 -->
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label asp-for="Uso" class="form-label"></label>
-                    <select asp-for="Uso" class="form-control">
-                        <option value="1">Comercial</option>
-                        <option value="2">Personal</option>
-                    </select>
-                    <span asp-validation-for="Uso" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
+                <div class="col-md-6">
                     <label asp-for="Latitud" class="form-label"></label>
                     <input asp-for="Latitud" class="form-control" />
                     <span asp-validation-for="Latitud" class="text-danger"></span>
                 </div>
-
-                <div class="form-group">
+                <div class="col-md-6">
                     <label asp-for="Longitud" class="form-label"></label>
                     <input asp-for="Longitud" class="form-control" />
                     <span asp-validation-for="Longitud" class="text-danger"></span>
                 </div>
-
-                <div class="form-check mt-3">
-                    <input asp-for="Activo" class="form-check-input" type="checkbox" />
-                    <label class="form-check-label">Activo</label>
+                <div class="col-md-6">
+                    <label asp-for="Precio" class="form-label"></label>
+                    <input asp-for="Precio" class="form-control" />
+                    <span asp-validation-for="Precio" class="text-danger"></span>
                 </div>
-
-                <div class="form-check">
-                    <input asp-for="Activo" class="form-check-input" type="checkbox" />
-                    <label class="form-check-label">Disponible</label>
+                <div class="col-md-6">
+                    <label asp-for="Activo" class="form-label">¿Está activo?</label>
+                    <select class="form-select" name="Activo">
+                                           @{
+                       @:<option @(Model.Activo==true ? "selected" : "") value="True">Si</option>
+                       @:<option @(Model.Activo==false ? "selected" : "") value="False">No</option>
+                    }
+                    </select>
+                    <span asp-validation-for="Activo" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label for="Id_Uso" class="form-label">Uso del inmueble</label>
+                    <select class="form-select" name="Id_Uso">
+                        @foreach (var item in listaUsos)
+                        {
+                             @:<option @(item.Id_Uso==Model.Id_Uso ? "selected" : "") value="@item.Id_Uso">@(item.Nombre)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Id_Uso" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label for="Id_Tipo" class="form-label">Tipo de inmueble</label>
+                    <select class="form-select" name="Id_Tipo">
+                        @foreach (var item in listaTipos)
+                        {
+                              @:<option @(item.Id_Tipo==Model.Id_Tipo ? "selected" : "") value="@item.Id_Tipo">@(item.Nombre)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Id_Tipo" class="text-danger"></span>
+                </div>
+                <div class="col-md-12">
+                    <label for="Id_Propietario" class="form-label">Propietario</label>
+                    <select class="form-select" name="Id_Propietario">
+                        @foreach (var item in listaPropietarios)
+                        {
+                             @:<option @(item.Id_Propietario==Model.Id_Propietario ? "selected" : "") value="@item.Id_Propietario">@(item.Nombre + " " + item.Apellido)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Id_Propietario" class="text-danger"></span>
                 </div>
             </div>
-        </div>
 
-        <div class="mt-4 d-flex gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-save"></i> Guardar
-            </button>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-arrow-left"></i> Volver a la lista
-            </a>
-        </div>
-    </form>
+            <div class="mt-4 d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-secondary">Volver al listado</a>
+                <button type="submit" class="btn btn-success">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
 </div>

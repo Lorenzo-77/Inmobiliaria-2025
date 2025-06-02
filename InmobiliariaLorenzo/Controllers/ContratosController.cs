@@ -56,7 +56,7 @@ namespace InmobiliariaLorenzo.Controllers
             if (repoInmuble.VerificarDisponibilidad(contrato.Id_Inmueble, contrato.Fecha_Inicio, contrato.Fecha_Fin))
             {
                 repoContrato.Alta(contrato);
-                TempData["creado"] = "Si";
+                TempData["creado"] = "Contrato Creado";
                 return RedirectToAction(nameof(Index));
             }
             else

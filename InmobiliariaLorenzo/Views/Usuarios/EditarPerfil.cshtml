@@ -4,81 +4,78 @@
     ViewData["Title"] = "Editar Perfil";
 }
 
-<div class="container mt-4">
-    <h2 class="text-center mb-3">Editar Perfil</h2>
-    <hr />
+<h2 class="text-primary">Editar Perfil</h2>
+<hr class="border border-secondary border-1" />
 
-    @if (TempData["editado"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>¡Éxito!</strong> Usuario editado correctamente.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+@if (TempData["editado"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        Usuario editado exitosamente
+    </div>
+}
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow rounded-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Editar tus datos</h5>
-                </div>
-                <div class="card-body">
-                    <form asp-action="EditarPerfil" enctype="multipart/form-data">
-                        <input type="hidden" name="Id" value="@Model.Id_Usuario" />
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="card shadow-sm">
+    <div class="card-header bg-warning text-dark fw-bold">
+        Editar Perfil
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 col-lg-5">
+                <form asp-action="EditarPerfil" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="Apellido" class="form-label"></label>
-                                <input asp-for="Apellido" class="form-control" />
-                                <span asp-validation-for="Apellido" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="Nombre" class="form-label"></label>
-                                <input asp-for="Nombre" class="form-control" />
-                                <span asp-validation-for="Nombre" class="text-danger small"></span>
-                            </div>
-                        </div>
+                    <input type="hidden" name="Id_Usuario" value="@Model.Id_Usuario" />
 
-                        <div class="mb-3">
-                            <label asp-for="Mail" class="form-label"></label>
-                            <input asp-for="Mail" class="form-control" />
-                            <span asp-validation-for="Mail" class="text-danger small"></span>
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="Apellido" class="form-label"></label>
+                        <input asp-for="Apellido" class="form-control" />
+                        <span asp-validation-for="Apellido" class="text-danger"></span>
+                    </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Rol" class="form-label"></label>
-                            <select class="form-select" name="Rol">
-                                @if (User.IsInRole("Administrador"))
+                    <div class="mb-3">
+                        <label asp-for="Nombre" class="form-label"></label>
+                        <input asp-for="Nombre" class="form-control" />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Mail" class="form-label"></label>
+                        <input asp-for="Mail" class="form-control" />
+                        <span asp-validation-for="Mail" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Rol" class="form-label"></label>
+                        <select class="form-select" name="Rol">
+                            @{
+                                if (User.IsInRole("Administrador"))
                                 {
-                                    <option value="1" selected="@(Model.Rol == 1)">Administrador</option>
+                                    @:<option @(Model.Rol == 1 ? "selected" : "") value="1">Administrador</option>
                                 }
-                                <option value="2" selected="@(Model.Rol != 1)">Empleado</option>
-                            </select>
-                            <span asp-validation-for="Rol" class="text-danger small"></span>
-                        </div>
+                                @:<option @(Model.Rol != 1 ? "selected" : "") value="2">Empleado</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Rol" class="text-danger"></span>
+                    </div>
 
-                        <div class="mb-3 text-center">
-                            <img src="@(string.IsNullOrEmpty(Model.Avatar) ? "/Uploads/av1.jpg" : Model.Avatar)"
-                                 class="rounded-circle shadow mb-2"
-                                 style="width: 100px; height: 100px; object-fit: cover;" alt="Avatar" />
-                            <div>
-                                <label asp-for="AvatarFile" class="form-label mt-2">Cambiar Avatar</label>
-                                <input asp-for="AvatarFile" class="form-control" />
-                                <span asp-validation-for="AvatarFile" class="text-danger small"></span>
-                            </div>
-                        </div>
+                    <div class="mb-3 text-center">
+                        <img src="@(string.IsNullOrEmpty(Model.Avatar) ? "/Uploads/av1.jpg" : Model.Avatar)" class="rounded-circle shadow" style="width: 80px; height: 80px;" alt="Avatar" />
+                    </div>
 
-                        <input asp-for="Avatar" class="form-control" type="hidden" />
+                    <div class="mb-3">
+                        <label asp-for="AvatarFile" class="form-label"></label>
+                        <input asp-for="AvatarFile" class="form-control" />
+                        <span asp-validation-for="AvatarFile" class="text-danger"></span>
+                    </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-save me-1"></i> Guardar Cambios
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <input asp-for="Avatar" class="form-control" type="hidden" />
+
+                    <div class="mb-3">
+                        <input type="submit" value="Editar" class="btn btn-warning w-100" />
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+<br>
