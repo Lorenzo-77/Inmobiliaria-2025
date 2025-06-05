@@ -32,8 +32,8 @@ namespace InmobiliariaLorenzo.Controllers
         // GET: Contratos/Details/5
         public ActionResult Details(int id)
         {
-            var lista = repoContrato.ObtenerPorId(id);
-            return View(lista);
+            var contrato = repoContrato.ObtenerPorId(id);
+            return View(contrato);
         }
 
         // GET: Contratos/Create
@@ -53,6 +53,13 @@ namespace InmobiliariaLorenzo.Controllers
             ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
             ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
 
+            // VALIDACIÓN FECHAS
+            if (contrato.Fecha_Fin < contrato.Fecha_Inicio)
+            {
+                ModelState.AddModelError("Fecha_Fin", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+                return View(contrato);
+            }
+
             if (repoInmuble.VerificarDisponibilidad(contrato.Id_Inmueble, contrato.Fecha_Inicio, contrato.Fecha_Fin))
             {
                 repoContrato.Alta(contrato);
@@ -61,7 +68,7 @@ namespace InmobiliariaLorenzo.Controllers
             }
             else
             {
-                TempData["Otro"] = "No se pudo crear el contrato no hay disponibilidad.";
+                TempData["Otro"] = "No se pudo crear el contrato: no hay disponibilidad.";
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -70,13 +77,11 @@ namespace InmobiliariaLorenzo.Controllers
         [HttpGet]
         public ActionResult Edit(int id)
         {
-            var lista = repoContrato.ObtenerPorId(id);
+            var contrato = repoContrato.ObtenerPorId(id);
             ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
             ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
-
             ViewBag.Mensaje = TempData["Mensaje"];
-
-            return View(lista);
+            return View(contrato);
         }
 
         // POST: Contratos/Edit/5
@@ -84,8 +89,20 @@ namespace InmobiliariaLorenzo.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(Contrato contrato)
         {
+            ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
+            ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
+
+            if (contrato.Fecha_Fin < contrato.Fecha_Inicio)
+            {
+                ModelState.AddModelError("Fecha_Fin", "La fecha de fin no puede ser anterior a la fecha de inicio.");
+                return View(contrato);
+            }
+
+            // contrato.ModificadoPor = User.Identity.Name;
+            // contrato.FechaModificacion = DateTime.Now;
+
             repoContrato.Modificacion(contrato);
-            TempData["editado"] = "Si";
+            TempData["editado"] = "Contrato editado";
             return RedirectToAction(nameof(Index));
         }
 
@@ -94,8 +111,8 @@ namespace InmobiliariaLorenzo.Controllers
         [HttpGet]
         public ActionResult Delete(int id)
         {
-            var lista = repoContrato.ObtenerPorId(id);
-            return View(lista);
+            var contrato = repoContrato.ObtenerPorId(id);
+            return View(contrato);
         }
 
         // POST: Contratos/Delete/5
@@ -104,8 +121,11 @@ namespace InmobiliariaLorenzo.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, Contrato contrato)
         {
+
+            // contrato.EliminadoPor = User.Identity.Name;
+            // contrato.FechaEliminacion = DateTime.Now;
             repoContrato.Baja(id);
-            TempData["eliminado"] = "Si";
+            TempData["eliminado"] = "Contrato eliminado";
             return RedirectToAction(nameof(Index));
         }
 
@@ -115,7 +135,6 @@ namespace InmobiliariaLorenzo.Controllers
             var lista = repoContrato.ObtenerContratosPorInquilino(id);
             return View(lista);
         }
-
 
         [HttpGet]
         public ActionResult ContratosVigentes()
@@ -140,24 +159,22 @@ namespace InmobiliariaLorenzo.Controllers
             return View(lista);
         }
 
-
         [HttpGet]
         public ActionResult CreateContrato(int id_inmueble = 0)
         {
             ViewBag.id_inmueble = id_inmueble;
             ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
             ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
-
             return View("Create");
         }
 
         [HttpGet]
         public ActionResult FinalizarContrato(int id, int id_inquilino = 0)
         {
-            var lista = repoContrato.ObtenerPorId(id);
+            var contrato = repoContrato.ObtenerPorId(id);
             ViewBag.id_inquilino = id_inquilino;
             ViewBag.Monto = repoContrato.CalcularMontoCancelacion(id);
-            return View(lista);
+            return View(contrato);
         }
 
         [HttpPost]
@@ -168,7 +185,6 @@ namespace InmobiliariaLorenzo.Controllers
             repoContrato.FinalizarContrato(id);
             TempData["Otro"] = "Contrato Finalizado Correctamente.";
             return RedirectToAction(nameof(Index));
-
         }
 
         [HttpGet]
@@ -176,13 +192,9 @@ namespace InmobiliariaLorenzo.Controllers
         {
             ViewBag.id_inmueble = id_inmueble;
             ViewBag.id_inquilino = id_inquilino;
-
             ViewBag.listaInmuebles = repoInmuble.ObtenerTodos();
             ViewBag.listaInquilinos = repoInquilino.ObtenerTodos();
-
             return View("Create");
         }
-
-
     }
 }
